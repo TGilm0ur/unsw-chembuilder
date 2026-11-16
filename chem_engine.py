@@ -624,7 +624,8 @@ def compute_all(graph: dict, traj: dict) -> dict:
     mu = float(np.linalg.norm(mu_vec))
     masses = np.array([MASS[e] for e in els])
     com = (coords * masses[:, None]).sum(0) / masses.sum()
-    # points to where negative charge is concentrated; draw from the centre of mass
+    # mu = sum(q r) points toward the POSITIVE end (physics convention); the viewer flips it so the
+    # drawn arrow points toward the negative end (chemistry convention), starting at the centre of mass
     dipole = {"vec": mu_vec.round(3).tolist(), "mag": round(mu, 2), "origin": com.round(3).tolist()}
 
     ir = ir_spectrum(molH, bond_info, q)

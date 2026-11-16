@@ -248,7 +248,7 @@
       v.setStyle({}, { stick: { radius: 0.09, colorscheme: { prop: 'elem', map: CPK_J() }, opacity: 0.55 }, sphere: { scale: 0.2, opacity: 0.55, colorscheme: { prop: 'elem', map: CPK_J() } } });
       if (document.getElementById('bd') ? document.getElementById('bd').checked : bondDipoles) { bondDipoles = true; drawBondDipoles(d); }
       if (mag >= 0.05) {
-        const u = dp.vec.map(c => c / mag), L = Math.min(3.2, 0.7 + 0.55 * mag), o = dp.origin;
+        const u = dp.vec.map(c => -c / mag), L = Math.min(3.2, 0.7 + 0.55 * mag), o = dp.origin;
         const tail = [o[0] - u[0] * L / 2, o[1] - u[1] * L / 2, o[2] - u[2] * L / 2], head = [o[0] + u[0] * L / 2, o[1] + u[1] * L / 2, o[2] + u[2] * L / 2];
         v.addArrow({ start: { x: tail[0], y: tail[1], z: tail[2] }, end: { x: head[0], y: head[1], z: head[2] }, radius: 0.12, radiusRatio: 2.2, mid: 0.72, color: YELLOW });
         label('+', tail, { fontSize: 17.33, backgroundColor: '#ffffff' }); label('δ− end', head, { fontSize: 12.33 });
