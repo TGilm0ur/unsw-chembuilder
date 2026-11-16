@@ -1,0 +1,5 @@
+__pycache__/
+.claude/
+worksheet/
+chemistry-stage6-syllabus-word*.docx
+.DS_Store

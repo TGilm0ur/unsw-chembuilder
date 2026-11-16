@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+  :root { --yellow:#FFD100; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:transparent; font-family:Tahoma,Verdana,"MS Sans Serif",sans-serif; font-size:15.33px; color:#000; line-height:1.55; }
+  .card { max-width:1150px; margin:0 auto 6px auto; background:#d4d0c8; border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:2px 2px 0 #000; }
+  .it { background:linear-gradient(90deg,var(--yellow),#ffe566); border-bottom:2px solid #000; padding:4px 10px; font-weight:bold; font-size:16.33px; }
+  .ib { padding:12px 22px 16px 22px; }
+  h3 { margin:16px 0 8px 0; font-size:18.33px; border-bottom:2px solid var(--yellow); padding-bottom:2px; }
+  p { margin:6px 0; }
+  table { border-collapse:collapse; width:100%; margin:8px 0; font-size:14.33px; }
+  th { background:#bdb9b0; border:1px solid #808080; padding:4px 8px; text-align:left; }
+  td { border:1px solid #a8a49c; padding:4px 8px; vertical-align:top; background:#e6e2d9; }
+  .eq { background:#e6e2d9; border:1px solid #a8a49c; padding:6px 10px; margin:6px 0 14px 0; text-align:center; overflow-x:auto; }
+  .eq .katex { font-size:1.6em; }
+  .katex { font-size:1.1em; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+<div class="it">Approximations used in ChemBuilder</div>
+<div class="ib">
+<p>Real quantum chemistry programs solve for the electrons in a molecule. ChemBuilder replaces each step with a simple classical model.
+Use this page when you compare your results with experimental or higher-accuracy data.</p>
+<table>
+<tr><th>Output</th><th>A real quantum chemistry program</th><th>ChemBuilder</th></tr>
+<tr><td>Geometry</td><td>Quantum mechanical optimisation of electrons and nuclei</td><td>Molecular mechanics energy minimisation: atoms are balls joined by springs</td></tr>
+<tr><td>Bond lengths</td><td>Measured from the quantum optimised geometry</td><td>Measured from the molecular mechanics geometry</td></tr>
+<tr><td>Partial charges</td><td>Calculated from the electron distribution</td><td>Estimated from electronegativity (Gasteiger method)</td></tr>
+<tr><td>Dipole moment</td><td>Calculated from the full electron density</td><td>Sum of point charges &times; positions</td></tr>
+<tr><td>IR spectrum</td><td>Vibrational frequencies from the energy surface</td><td>Each bond is a simple spring with a typical strength. Stretches only</td></tr>
+<tr><td>Thermodynamics</td><td>Energies and frequencies from quantum calculations</td><td>Average bond enthalpies (Hess's Law) and a simplified statistical estimate of entropy</td></tr>
+<tr><td>Free energy</td><td>Absolute free energy of the molecule, from its electronic energy plus thermal corrections</td><td>Free energy of formation, ΔG<sub>f</sub>. ChemBuilder can't produce absolute free energy because it doesn't calculate electronic energy</td></tr>
+</table>
+
+<h3>The methods in a little more detail</h3>
+
+<p><b>Energy minimisation.</b> Bonds, angles and twists behave like springs, and charged atoms attract or repel.
+The atoms are moved step by step until the total energy stops falling. The animation shows these real steps.
+This is usually a <i>starting point</i> for a quantum optimisation, not a replacement for it.</p>
+<div class="eq" data-eq="E_{\text{total}} = E_{\text{stretch}} + E_{\text{bend}} + E_{\text{twist}} + E_{\text{charge}}"></div>
+
+<p><b>Partial charges (Gasteiger).</b> Charge is shifted along each bond towards the more electronegative atom,
+and this is repeated until the electronegativities balance. No electron density is calculated.</p>
+
+<p><b>Dipole moment.</b> Each atom's charge <span data-eq="q_i"></span> is multiplied by its position <span data-eq="\vec{r}_i"></span>
+and the results are added as vectors. The size of the result is the dipole moment, in debye (D).</p>
+<div class="eq" data-eq="\vec{\mu} = \sum_i q_i \, \vec{r}_i"></div>
+
+<p><b>IR spectrum.</b> Each bond stretches like a spring. The wavenumber depends on the spring strength <span data-eq="k"></span>
+(a typical value for that type of bond) and the reduced mass <span data-eq="\mu"></span> of the two atoms.
+Peak strength grows with bond polarity. Bends and twists are left out.</p>
+<div class="eq" data-eq="\tilde{\nu} = \frac{1}{2\pi c}\sqrt{\frac{k}{\mu}} \qquad \mu = \frac{m_1 m_2}{m_1 + m_2}"></div>
+
+<p><b>Enthalpy.</b> <span data-eq="\Delta H_f"></span> (enthalpy of <i>formation</i>) is the energy change when one mole of the molecule is made from its elements.
+ChemBuilder uses Hess's Law to find it. First atomise the elements (this costs energy), then form the molecule's bonds (this releases energy) using average bond enthalpies.</p>
+<div class="eq" data-eq="\Delta H_f = \sum \Delta H_{\text{atomisation}} - \sum E_{\text{bonds in molecule}}"></div>
+
+<p><b>Entropy and free energy.</b> The molecule's entropy is estimated from its mass (translation), shape and symmetry (rotation), and its bond vibrations.
+The entropy change on forming the molecule from its elements, <span data-eq="\Delta S_f"></span>, needs the standard entropies of the elements.
+Assuming <span data-eq="\Delta H_f"></span> and <span data-eq="\Delta S_f"></span> do not change with temperature, the free energy of formation
+<span data-eq="\Delta G_f"></span> is negative (spontaneous) when the energy released outweighs the entropy term.</p>
+<div class="eq" data-eq="S = S_{\text{trans}} + S_{\text{rot}} + S_{\text{vib}}"></div>
+<div class="eq" data-eq="\Delta G_f = \Delta H_f - T\,\Delta S_f"></div>
+</div></div>
+
+<script>
+(function () {
+  function send(type, data) { window.parent.postMessage(Object.assign({ isStreamlitMessage: true, type }, data), '*'); }
+  function typeset() {
+    document.querySelectorAll('[data-eq]').forEach(el => {
+      try { katex.render(el.getAttribute('data-eq'), el, { displayMode: el.tagName === 'DIV', throwOnError: false }); } catch (e) { el.textContent = el.getAttribute('data-eq'); }
+    });
+  }
+  function resize() { send('streamlit:setFrameHeight', { height: document.getElementById('card').getBoundingClientRect().bottom + 12 }); }
+  window.addEventListener('message', ev => { if (ev.data && ev.data.type === 'streamlit:render') { typeset(); resize(); } });
+  window.addEventListener('load', () => { typeset(); resize(); setTimeout(resize, 400); });
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(document.getElementById('card'));
+  send('streamlit:componentReady', { apiVersion: 1 });
+})();
+</script>
+</body>
+</html>

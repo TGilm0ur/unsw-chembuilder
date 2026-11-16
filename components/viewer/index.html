@@ -1,0 +1,587 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
+<style>
+  :root { --yellow:#FFD100; --grey:#d4d0c8; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:transparent; font-family:Tahoma,Verdana,"MS Sans Serif",sans-serif; font-size:14.33px; color:#000; overflow:hidden; }
+  .win { border:2px solid; border-color:#fff #404040 #404040 #fff; background:var(--grey); box-shadow:1px 1px 0 #000; display:flex; flex-direction:column; }
+  .title { background:linear-gradient(90deg,var(--yellow),#ffe566); font-weight:bold; font-size:16.33px; padding:4px 8px; border-bottom:2px solid #000; display:flex; justify-content:space-between; align-items:center; letter-spacing:.3px; }
+  .main { display:flex; flex:1; min-height:0; }
+  .side { width:118px; padding:8px; display:flex; flex-direction:column; gap:8px; background:var(--grey); border-right:2px solid #808080; }
+  .ico { background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; padding:10px 2px 8px; text-align:center; cursor:pointer; font:inherit; font-size:14.33px; font-weight:bold; line-height:1.2; color:#000; }
+  .ico svg { width:56px; height:56px; display:block; margin:0 auto 6px; }
+  .ico.on { border-color:#404040 #fff #fff #404040; background:var(--yellow); font-weight:bold; }
+  .vpwrap { flex:1; position:relative; margin:6px; border:2px solid; border-color:#404040 #fff #fff #404040; background:#101010; min-width:0; }
+  #vp { position:absolute; inset:0; }
+  .tag { position:absolute; left:10px; bottom:8px; color:#FFD100; font-size:13.33px; font-weight:bold; text-shadow:0 0 3px #000; pointer-events:none; }
+  .box { position:absolute; right:10px; top:10px; min-width:250px; max-width:360px; max-height:calc(100% - 70px); overflow:auto; background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:3px 3px 0 rgba(0,0,0,.5); z-index:5; }
+  .box.wide { width:420px; max-width:calc(100% - 20px); }
+  .box .bt { background:var(--yellow); border-bottom:2px solid #000; padding:2px 8px; font-weight:bold; }
+  .box .bb { padding:8px 10px; }
+  .big { font-size:27.33px; font-weight:bold; line-height:1.1; }
+  .unit { font-size:14.33px; font-weight:normal; color:#333; }
+  table { border-collapse:collapse; width:100%; margin-top:6px; }
+  th { text-align:left; background:#bdb9b0; padding:2px 6px; border:1px solid #808080; font-size:13.33px; }
+  td { padding:2px 6px; border:1px solid #a8a49c; font-size:13.33px; }
+  tr.hl td { background:#fff0a0; }
+  tr.clk { cursor:pointer; }
+  tr.clk:hover td { background:#fff6c4; }
+  .small { font-size:12.33px; color:#333; margin-top:6px; line-height:1.35; }
+  .btn { font:inherit; font-weight:bold; background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; padding:5px 12px; cursor:pointer; color:#000; }
+  .btn:active { border-color:#404040 #fff #fff #404040; }
+  .btn.y { background:var(--yellow); }
+  .syl-btn { position:absolute; right:10px; bottom:10px; z-index:6; width:270px; padding:10px 12px; font-size:16.33px; white-space:nowrap; }
+  .legend { position:absolute; left:10px; bottom:44px; background:rgba(0,0,0,.65); color:#fff; padding:4px 8px; font-size:12.33px; z-index:4; border:1px solid #555; }
+  .bar { height:10px; width:150px; margin:3px 0; background:linear-gradient(90deg,#e03030,#f4f4f4,#3050e0); border:1px solid #888; }
+  .panel { position:absolute; inset:14px 14px 76px 14px; z-index:9; display:none; background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:4px 4px 0 rgba(0,0,0,.55); flex-direction:column; }
+  .panel.open { display:flex; }
+  .panel .pb { padding:12px 16px; overflow:auto; line-height:1.5; font-size:14.83px; }
+  .panel .pb p { margin:0 0 9px; }
+  .panel .tagline { background:#fff3b0; border:1px solid #a58b00; padding:6px 8px; margin-bottom:10px; font-size:13.83px; }
+  .status { padding:3px 8px; border-top:2px solid #808080; font-size:13.33px; display:flex; justify-content:space-between; background:var(--grey); min-height:24px; align-items:center; }
+  .warn { color:#8a5a00; font-weight:bold; }
+  input[type=range] { width:100%; accent-color:#C9A400; }
+  svg text { font-family:Tahoma,Verdana,sans-serif; }
+  .chk { font-size:13.33px; display:block; margin-top:6px; }
+
+  .sk { position:absolute; left:10px; top:10px; width:316px; z-index:8; background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:3px 3px 0 rgba(0,0,0,.55); user-select:none; }
+  .sk .title { padding:2px 8px; font-size:13.33px; }
+  .skpal { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:5px 6px 3px; }
+  button.tool { font:inherit; font-weight:bold; height:27px; background:var(--grey); border:2px solid; border-color:#fff #404040 #404040 #fff; cursor:pointer; color:#000; padding:0 2px; }
+  button.tool:active, button.tool.on { border-color:#404040 #fff #fff #404040; background:var(--yellow); }
+  button.tool .sw { display:inline-block; width:9px; height:9px; border:1px solid #000; margin-right:4px; vertical-align:0; }
+  .skcv { margin:3px 6px; border:2px solid; border-color:#404040 #fff #fff #404040; background:#fff; line-height:0; }
+  .skcv canvas { width:100%; cursor:crosshair; touch-action:none; }
+  .skst { padding:2px 8px 5px; font-size:12.33px; line-height:1.25; min-height:34px; color:#444; }
+  .skst .m { color:#a00000; font-weight:bold; }
+  .acts { position:absolute; right:10px; bottom:10px; z-index:8; display:flex; flex-direction:column; gap:6px; width:270px; }
+  .acts .btn { padding:10px 12px; font-size:16.33px; white-space:nowrap; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .msgs { position:absolute; right:10px; top:10px; z-index:7; max-width:340px; display:flex; flex-direction:column; gap:5px; }
+  .msgs div { padding:5px 9px; font-size:13.33px; border:2px solid; color:#000; line-height:1.3; }
+  .msgs .e { background:#ffd9d9; border-color:#a00000; }
+  .msgs .w { background:#fff3b0; border-color:#a58b00; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function () {
+  const YELLOW = '#FFD100';
+  const CPK = { C: '#909090', H: '#FFFFFF', N: '#3050F8', O: '#FF0D0D' };
+  const MASS = { H: 1.008, C: 12.011, N: 14.007, O: 15.999 };
+  const SUBS = '₀₁₂₃₄₅₆₇₈₉';
+  const sub = s => String(s).replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+  const sym = { 1: '–', 2: '=', 3: '≡' };
+
+  let args = null, built = false, v = null, vpEl = null;
+  let lastKey = null, lastPlay = null, animTimer = null, vibTimer = null;
+  let active = 'bonds', sylOpen = false, TK = 298, bondDipoles = false, selPeak = null;
+
+  function send(type, data) { window.parent.postMessage(Object.assign({ isStreamlitMessage: true, type }, data), '*'); }
+  window.addEventListener('message', ev => {
+    if (!ev.data || ev.data.type !== 'streamlit:render') return;
+    args = ev.data.args || {};
+    onRender();
+    fitHeight();
+  });
+  send('streamlit:componentReady', { apiVersion: 1 });
+
+  // ---------- molfile / 3Dmol helpers ----------
+  function molBlock(els, xyz, bonds) {
+    const f = n => n.toFixed(4).padStart(10);
+    let s = '\n  chem\n\n' + String(els.length).padStart(3) + String(bonds.length).padStart(3) + '  0  0  0  0  0  0  0  0999 V2000\n';
+    els.forEach((e, i) => { s += f(xyz[i][0]) + f(xyz[i][1]) + f(xyz[i][2]) + ' ' + e.padEnd(3) + ' 0  0  0  0  0  0  0  0  0  0  0  0\n'; });
+    bonds.forEach(b => { s += String(b[0] + 1).padStart(3) + String(b[1] + 1).padStart(3) + String(Math.round(b[2])).padStart(3) + '  0\n'; });
+    return s + 'M  END\n';
+  }
+  function baseStyle() { return { stick: { radius: 0.13, colorscheme: { prop: 'elem', map: CPK_J() } }, sphere: { scale: 0.2, colorscheme: { prop: 'elem', map: CPK_J() } } }; }
+  function CPK_J() { return { C: 0x909090, H: 0xFFFFFF, N: 0x3050F8, O: 0xFF0D0D }; }
+  function makeViewer() {
+    v = $3Dmol.createViewer(vpEl, { backgroundColor: '#101010', antialias: true });
+  }
+  function resizeViewer() { if (v) { v.resize(); v.render(); } }
+
+  let cur = { els: [], bonds: [], xyz: [] };
+  function show(els, bonds, xyz, opts) {
+    cur = { els, bonds, xyz };
+    v.removeAllModels(); v.removeAllShapes(); v.removeAllLabels();
+    v.addModel(molBlock(els, xyz, bonds), 'sdf');
+    v.setStyle({}, (opts && opts.style) || baseStyle());
+    if (opts && opts.fit) { fit(); setTimeout(fit, 120); setTimeout(fit, 500); }
+    v.render();
+  }
+  function fit() { if (!v) return; v.resize(); v.zoomTo(); v.zoom(1.7); v.render(); }
+  function label(text, pos, o) {
+    v.addLabel(text, Object.assign({ position: { x: pos[0], y: pos[1], z: pos[2] }, fontSize: 14.33, fontColor: '#111', backgroundColor: YELLOW, backgroundOpacity: 0.92, borderColor: '#000', borderThickness: 1, inFront: true, showBackground: true, alignment: 'center' }, o || {}));
+  }
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+
+  // ---------- BUILDER MODE (3D viewport next to the sketcher) ----------
+  function renderBuilder() {
+    if (!built) {
+      document.getElementById('root').innerHTML =
+        '<div class="win" id="win"><div class="title"><span>Molecule Builder</span><button class="btn" id="btnabout" style="padding:3px 14px;font-size:14.33px">\u2139 About</button></div>' +
+        '<div class="vpwrap" style="margin:6px;flex:1;position:relative"><div id="vp"></div>' +
+        '<div class="sk"><div class="title"><span>2D Sketcher</span><span id="skcount"></span></div>' +
+        '<div class="skpal">' +
+        '<button class="tool on" data-tool="C" title="Carbon (C)"><span class="sw" style="background:#555"></span>C</button>' +
+        '<button class="tool" data-tool="N" title="Nitrogen (N)"><span class="sw" style="background:#3050F8"></span>N</button>' +
+        '<button class="tool" data-tool="O" title="Oxygen (O)"><span class="sw" style="background:#FF0D0D"></span>O</button>' +
+        '<button class="tool" data-tool="H" title="Hydrogen (H)"><span class="sw" style="background:#fff"></span>H</button>' +
+        '<button class="tool" data-tool="move" title="Move atoms (M)">Move</button>' +
+        '<button class="tool" data-tool="erase" title="Erase atom or bond (E)">Erase</button>' +
+        '<button class="tool" id="skundo" title="Undo (Z)">Undo</button>' +
+        '<button class="tool" id="skclear" title="Clear everything">Clear</button></div>' +
+        '<div class="skcv"><canvas id="cv"></canvas></div>' +
+        '<div class="skst"><span id="skmsg" class="m"></span><span id="skhint">Click to add an atom &middot; drag from an atom to bond &middot; click a bond to change its order. Hydrogens fill in automatically.</span></div></div>' +
+        '<div class="msgs" id="msgs"></div>' +
+        '<div class="acts"><button class="btn y" id="btnopt">\u2699  Geometry Optimise</button><button class="btn y" id="btncalc">\u25b6  Calculate</button></div>' +
+        '<div class="tag" id="tag"></div></div>' +
+        '<div class="status"><span id="st"></span><span>Drag to rotate &middot; scroll to zoom</span></div></div>';
+      vpEl = document.getElementById('vp');
+      makeViewer(); initSketcher(); built = true;
+    }
+    document.getElementById('btnopt').disabled = !!args.disabled; document.getElementById('btncalc').disabled = !!args.disabled;
+    document.getElementById('msgs').innerHTML = (args.errors || []).map(t => '<div class="e">\u26a0 ' + t + '</div>').join('') + (args.warnings || []).map(t => '<div class="w">\u26a0 ' + t + '</div>').join('');
+    document.getElementById('tag').textContent = args.empty ? '' : (args.optimised ? 'Optimised geometry' : 'Rough starting geometry (not optimised)');
+    document.getElementById('st').textContent = args.empty ? '' : args.status || '';
+    if (args.empty) { v.removeAllModels(); v.removeAllLabels(); v.removeAllShapes(); v.render(); lastKey = null; return; }
+    const fr = args.frames;
+    const isNew = args.mol_key !== lastKey;
+    if (isNew || args.play_id !== lastPlay) {
+      clearInterval(animTimer);
+      if (isNew) { show(args.elements, args.bonds, fr[fr.length - 1], { fit: true }); }
+      lastKey = args.mol_key;
+      if (args.play_id !== lastPlay && fr.length > 1 && args.optimised && args.play_id) {
+        lastPlay = args.play_id;
+        let i = 0;
+        animTimer = setInterval(() => {
+          show(args.elements, args.bonds, fr[i]);
+          if (++i >= fr.length) clearInterval(animTimer);
+        }, 55);
+      } else {
+        lastPlay = args.play_id;
+        show(args.elements, args.bonds, fr[args.optimised ? fr.length - 1 : 0]);
+      }
+    }
+    resizeViewer();
+  }
+
+  // ---------- DATA MODE ----------
+  const ICONS = {
+    bonds: '<svg viewBox="0 0 36 36"><rect x="3" y="12" width="30" height="12" fill="#fff" stroke="#000" stroke-width="2"/><g stroke="#000" stroke-width="2"><path d="M9 12v6M15 12v4M21 12v6M27 12v4"/></g></svg>',
+    charges: '<svg viewBox="0 0 36 36"><circle cx="12" cy="18" r="9" fill="#ff7b7b" stroke="#000" stroke-width="2"/><circle cx="26" cy="18" r="7" fill="#7b9bff" stroke="#000" stroke-width="2"/><text x="12" y="22" text-anchor="middle" font-size="13.33" font-weight="bold">δ−</text><text x="26" y="22" text-anchor="middle" font-size="11.33" font-weight="bold">δ+</text></svg>',
+    dipole: '<svg viewBox="0 0 36 36"><path d="M5 26L29 10" stroke="#000" stroke-width="3"/><path d="M29 10l-9 1 5 7z" fill="#000"/><path d="M3 22v8M-1 26h8" transform="translate(2 -4) scale(.6)" stroke="#000" stroke-width="3"/></svg>',
+    ir: '<svg viewBox="0 0 36 36"><rect x="2" y="4" width="32" height="28" fill="#fff" stroke="#000" stroke-width="2"/><path d="M5 9h6l2 18 2-18h5l2 12 2-12h8" fill="none" stroke="#000" stroke-width="2"/></svg>',
+    thermo: '<svg viewBox="0 0 36 36"><path d="M18 3c2 7 9 9 9 18a9 9 0 0 1-18 0c0-4 2-6 4-8 0 3 1 4 2 4 0-5-1-9 3-14z" fill="#ff9a1f" stroke="#000" stroke-width="2"/><path d="M18 20c3 3 4 4 4 7a4 4 0 0 1-8 0c0-3 3-4 4-7z" fill="#ffe14a" stroke="#000" stroke-width="1.5"/></svg>'
+  };
+  const NAMES = { bonds: 'Bond Lengths', charges: 'Partial Charges', dipole: 'Dipole Moment', ir: 'IR Spectrum', thermo: 'Thermo' };
+
+  function buildData() {
+    const d = args.data;
+    document.getElementById('root').innerHTML =
+      '<div class="win" id="win"><div class="title"><span>Data Viewer</span><span id="tl">' + sub(d.formula) + '</span></div>' +
+      '<div class="main" id="mainrow"><div class="side" id="side"></div>' +
+      '<div class="vpwrap"><div id="vp"></div><div class="tag" id="tag"></div>' +
+      '<div class="box" id="box"></div><div class="legend" id="legend" style="display:none"></div>' +
+      '<button class="btn y syl-btn" id="sylbtn">📘 Connect to the Syllabus</button>' +
+      '<div class="panel" id="panel"></div></div></div>' +
+      '<div class="status"><span id="st"></span><span>Drag to rotate &middot; scroll to zoom &middot; right-drag to move</span></div></div>';
+    const side = document.getElementById('side');
+    Object.keys(ICONS).forEach(k => {
+      const b = document.createElement('button'); b.className = 'ico'; b.dataset.k = k; b.title = NAMES[k];
+      b.innerHTML = ICONS[k] + NAMES[k]; b.onclick = () => { active = k; sylOpen = false; selPeak = null; update(); };
+      side.appendChild(b);
+    });
+    document.getElementById('sylbtn').onclick = () => { sylOpen = !sylOpen; renderPanel(); };
+    vpEl = document.getElementById('vp'); makeViewer();
+    const els = d.elements, bonds = d.bonds.map(b => [b.a, b.b, b.order]);
+    show(els, bonds, d.coords, { fit: true });
+    built = true;
+  }
+
+  function update() {
+    clearInterval(vibTimer);
+    const d = args.data;
+    document.querySelectorAll('.ico').forEach(b => b.classList.toggle('on', b.dataset.k === active));
+    const bonds = d.bonds.map(b => [b.a, b.b, b.order]);
+    const X = d.coords;
+    v.removeAllShapes(); v.removeAllLabels();
+    show(d.elements, bonds, X);
+    const box = document.getElementById('box'), legend = document.getElementById('legend');
+    legend.style.display = 'none'; box.classList.remove('wide');
+    let tag = '', st = '', html = '';
+    const note = (d.auto_optimised ? '<div class="small">Geometry was optimised automatically before calculating.</div>' : '');
+
+    if (active === 'bonds') {
+      tag = 'Bond lengths (Å)';
+      d.bonds.forEach((b, i) => {
+        const p = mid(X[b.a], X[b.b]);
+        label(b.length.toFixed(3), p, { fontSize: 13.33 });
+      });
+      v.render();
+      const rows = d.bonds.map(b => '<tr><td>' + d.elements[b.a] + (b.a + 1) + sym[b.order] + d.elements[b.b] + (b.b + 1) + '</td><td style="text-align:right">' + b.length.toFixed(3) + ' Å</td></tr>').join('');
+      html = '<div class="bt">Bond Lengths</div><div class="bb"><div class="small" style="margin:0 0 4px">Distance between bonded nuclei</div><table><tr><th>Bond</th><th style="text-align:right">Length</th></tr>' + rows + '</table>' + note + '</div>';
+      st = 'Showing ' + d.bonds.length + ' bonds';
+    }
+    if (active === 'charges') {
+      tag = 'Partial charges (e)';
+      const q = d.charges, qmax = Math.max(0.4, ...q.map(Math.abs));
+      d.elements.forEach((e, i) => {
+        v.setStyle({ index: i }, { stick: { radius: 0.1, color: '#888888' }, sphere: { radius: e === 'H' ? 0.42 : 0.62, color: qColor(q[i], qmax) } });
+        label((q[i] > 0 ? '+' : '') + q[i].toFixed(2), [X[i][0], X[i][1], X[i][2]], { fontSize: 13.33, backgroundColor: '#ffffff', backgroundOpacity: 0.85, alignment: 'center' });
+      });
+      v.render();
+      legend.style.display = 'block'; legend.innerHTML = 'Charge<div class="bar"></div><div style="display:flex;justify-content:space-between"><span>δ−</span><span>0</span><span>δ+</span></div>';
+      const rows = d.elements.map((e, i) => '<tr><td>' + e + (i + 1) + '</td><td style="text-align:right">' + (q[i] > 0 ? '+' : '') + q[i].toFixed(3) + '</td></tr>').join('');
+      html = '<div class="bt">Partial Charges</div><div class="bb"><div class="small" style="margin:0 0 4px">Red = δ− (electron-rich), blue = δ+ (electron-poor)</div><table><tr><th>Atom</th><th style="text-align:right">Charge (e)</th></tr>' + rows + '</table>' + note + '</div>';
+      st = 'Most negative: ' + extreme(d, true) + '   Most positive: ' + extreme(d, false);
+    }
+    if (active === 'dipole') {
+      tag = 'Dipole moment';
+      const dp = d.dipole, mag = dp.mag;
+      v.setStyle({}, { stick: { radius: 0.09, colorscheme: { prop: 'elem', map: CPK_J() }, opacity: 0.55 }, sphere: { scale: 0.2, opacity: 0.55, colorscheme: { prop: 'elem', map: CPK_J() } } });
+      if (document.getElementById('bd') ? document.getElementById('bd').checked : bondDipoles) { bondDipoles = true; drawBondDipoles(d); }
+      if (mag >= 0.05) {
+        const u = dp.vec.map(c => c / mag), L = Math.min(3.2, 0.7 + 0.55 * mag), o = dp.origin;
+        const tail = [o[0] - u[0] * L / 2, o[1] - u[1] * L / 2, o[2] - u[2] * L / 2], head = [o[0] + u[0] * L / 2, o[1] + u[1] * L / 2, o[2] + u[2] * L / 2];
+        v.addArrow({ start: { x: tail[0], y: tail[1], z: tail[2] }, end: { x: head[0], y: head[1], z: head[2] }, radius: 0.12, radiusRatio: 2.2, mid: 0.72, color: YELLOW });
+        label('+', tail, { fontSize: 17.33, backgroundColor: '#ffffff' }); label('δ− end', head, { fontSize: 12.33 });
+      } else { label('No net dipole', dp.origin, { fontSize: 15.33 }); }
+      v.render();
+      html = '<div class="bt">Dipole Moment</div><div class="bb"><div class="big">' + mag.toFixed(2) + ' <span class="unit">D (debye)</span></div>' +
+        '<div class="small" style="font-size:13.33px">' + (mag < 0.05 ? 'Any polar bonds cancel out, so this molecule is <b>non-polar overall</b>.' : mag < 1 ? 'Weakly polar.' : '<b>Polar molecule.</b> The arrow points toward the negative (δ−) end.') + '</div>' +
+        '<label class="chk"><input type="checkbox" id="bd" ' + (bondDipoles ? 'checked' : '') + '> Show individual bond dipoles</label>' + note + '</div>';
+      st = 'Dipole vector = sum of (charge × position)';
+    }
+    if (active === 'ir') {
+      tag = 'IR spectrum' + (selPeak != null ? ' – vibrating: ' + d.ir.peaks[selPeak].label + (d.ir.peaks[selPeak].mode ? ' (' + d.ir.peaks[selPeak].mode + ')' : '') : '');
+      box.classList.add('wide');
+      if (d.ir.inactive) {
+        html = '<div class="bt">IR Spectrum (simple spring model)</div><div class="bb">' + irSvg(d.ir) +
+          '<div class="small" style="font-size:13.33px;margin-top:8px">Stretching this bond does not change the molecule\u2019s dipole, so it cannot absorb infrared light. Molecules made of two identical atoms (H<sub>2</sub>, N<sub>2</sub>, O<sub>2</sub>) are IR inactive.</div></div>';
+      } else {
+        html = '<div class="bt">IR Spectrum (simple spring model)</div><div class="bb">' + irSvg(d.ir) +
+        '<table><tr><th>Peak (cm⁻¹)</th><th>Bond</th><th>Strength</th></tr>' +
+        d.ir.peaks.map((p, i) => '<tr class="clk ' + (i === selPeak ? 'hl' : '') + '" data-p="' + i + '"><td>' + p.wn + '</td><td>' + p.label.replace('-', '–') + (p.mode ? ' ' + p.mode : '') + ' stretch</td><td>' + (p.I > 0.6 ? 'strong' : p.I > 0.3 ? 'medium' : 'weak') + '</td></tr>').join('') +
+        '</table><div class="small">Click a peak or row to watch that bond stretch. Stretching modes only.</div></div>';
+      }
+      st = d.ir.inactive ? 'IR inactive' : d.ir.peaks.length + ' absorption peaks';
+    }
+    if (active === 'thermo') {
+      tag = 'Average bond enthalpies (kJ/mol)';
+      d.bonds.forEach(b => label(String(b.energy), mid(X[b.a], X[b.b]), { fontSize: 12.33 }));
+      v.render();
+      html = thermoHtml(d.thermo, note); st = 'Estimated from average bond enthalpies and statistical mechanics';
+    }
+    document.getElementById('tag').textContent = tag;
+    document.getElementById('st').textContent = st;
+    box.innerHTML = html;
+    wireBox(d);
+    renderPanel();
+  }
+
+  function qColor(q, m) {
+    const t = Math.max(-1, Math.min(1, q / m)), w = [244, 244, 244], r = [224, 48, 48], b = [48, 80, 224];
+    const tgt = t < 0 ? r : b, a = Math.abs(t), c = w.map((x, i) => Math.round(x + (tgt[i] - x) * a));
+    return '#' + c.map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  function extreme(d, neg) {
+    let k = 0; d.charges.forEach((c, i) => { if (neg ? c < d.charges[k] : c > d.charges[k]) k = i; });
+    return d.elements[k] + (k + 1) + ' (' + (d.charges[k] > 0 ? '+' : '') + d.charges[k].toFixed(2) + ')';
+  }
+  function drawBondDipoles(d) {
+    d.bonds.forEach(b => {
+      if (Math.abs(b.dq) < 0.12) return;
+      const neg = b.dq < 0 ? b.a : b.b, pos = neg === b.a ? b.b : b.a;
+      const P = d.coords[pos], N = d.coords[neg];
+      const s = [P[0] + (N[0] - P[0]) * 0.25, P[1] + (N[1] - P[1]) * 0.25, P[2] + (N[2] - P[2]) * 0.25];
+      const e = [P[0] + (N[0] - P[0]) * 0.75, P[1] + (N[1] - P[1]) * 0.75, P[2] + (N[2] - P[2]) * 0.75];
+      v.addArrow({ start: { x: s[0], y: s[1], z: s[2] }, end: { x: e[0], y: e[1], z: e[2] }, radius: 0.05, radiusRatio: 2.6, mid: 0.7, color: '#7fd1ff' });
+    });
+  }
+
+  function irSvg(ir) {
+    const w = 380, h = 170, l = 34, r = 8, t = 8, b = 28, X0 = 4000, X1 = 400;
+    const px = x => l + (X0 - x) / (X0 - X1) * (w - l - r), py = T => t + (100 - T) / 100 * (h - t - b);
+    let pts = ir.x.map((x, i) => px(x).toFixed(1) + ',' + py(ir.t[i]).toFixed(1)).join(' ');
+    let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%"><rect x="' + l + '" y="' + t + '" width="' + (w - l - r) + '" height="' + (h - t - b) + '" fill="#fff" stroke="#000"/>';
+    [4000, 3000, 2000, 1500, 1000, 500].forEach(x => { s += '<line x1="' + px(x) + '" x2="' + px(x) + '" y1="' + (h - b) + '" y2="' + (h - b + 4) + '" stroke="#000"/><text x="' + px(x) + '" y="' + (h - b + 15) + '" font-size="11.33" text-anchor="middle">' + x + '</text>'; });
+    [0, 50, 100].forEach(T => { s += '<text x="' + (l - 4) + '" y="' + (py(T) + 3) + '" font-size="11.33" text-anchor="end">' + T + '</text>'; });
+    s += '<text x="' + (l + (w - l - r) / 2) + '" y="' + (h - 3) + '" font-size="11.33" text-anchor="middle">Wavenumber (cm⁻¹)</text>';
+    s += '<text transform="translate(9 ' + (h / 2 - 4) + ') rotate(-90)" font-size="11.33" text-anchor="middle">% Transmittance</text>';
+    s += '<polyline points="' + pts + '" fill="none" stroke="#b08a00" stroke-width="1.6"/>';
+    if (ir.inactive) s += '<text x="' + (l + (w - l - r) / 2) + '" y="' + (t + (h - t - b) / 2 + 8) + '" font-size="24" font-weight="bold" text-anchor="middle" fill="#a00000">IR inactive</text>';
+    ir.peaks.forEach((p, i) => { s += '<line x1="' + px(p.wn) + '" x2="' + px(p.wn) + '" y1="' + t + '" y2="' + (h - b) + '" stroke="' + (i === selPeak ? '#d00' : '#00000022') + '" stroke-width="' + (i === selPeak ? 1.5 : 6) + '" style="cursor:pointer" data-p="' + i + '" class="pk"/>'; });
+    return s + '</svg>';
+  }
+
+  function thermoHtml(t, note) {
+    const f = t.formation;
+    let h = '<div class="bt">Thermodynamics</div><div class="bb">';
+    h += '<table><tr><th colspan="2">' + sub(t.formula) + '  (gas, 298 K)</th></tr>' +
+      '<tr><td>Molar mass</td><td style="text-align:right">' + t.molar_mass.toFixed(2) + ' g/mol</td></tr>' +
+      '<tr><td>Total bond enthalpy</td><td style="text-align:right">' + t.sum_bonds + ' kJ/mol</td></tr>' +
+      '<tr><td>ΔH formation (ΔH<sub>f</sub>)</td><td style="text-align:right"><b>' + t.hf + ' kJ/mol</b></td></tr>' +
+      '<tr><td>Entropy (S°)</td><td style="text-align:right"><b>' + t.entropy + ' J/mol/K</b></td></tr>' +
+      '<tr><td>ΔS formation (ΔS<sub>f</sub>)</td><td style="text-align:right">' + (f.ds > 0 ? '+' : '') + f.ds + ' J/mol/K</td></tr></table>';
+    if (t.estimated_bonds) h += '<div class="small warn">Some bond enthalpies were estimated for unusual bonds.</div>';
+    h += '<div class="small" style="margin-top:8px"><b>Formation reaction:</b><br>' + sub(f.equation) + '</div>' +
+      '<div style="margin-top:8px"><b>ΔG<sub>f</sub> at <span id="tv">' + TK + '</span> K:</b> <span id="gv" class="big" style="font-size:19.33px"></span> <span class="unit">kJ/mol</span></div>' +
+      '<input id="tk" type="range" min="200" max="2000" step="10" value="' + TK + '"><div id="gs" class="small"></div>' +
+      '<div class="small">Entropy ' + f.ds_sign + ' on forming the molecule (change in moles of gas: ' + (f.delta_n_gas > 0 ? '+' : '') + (Math.round(f.delta_n_gas * 100) / 100) + ').</div>';
+    return h + note + '</div>';
+  }
+  function updateG(d) {
+    const hf = d.thermo.hf, ds = d.thermo.formation.ds;
+    const g = hf - TK * ds / 1000;
+    document.getElementById('tv').textContent = TK; document.getElementById('gv').textContent = Math.round(g);
+    let s = g < 0 ? 'ΔG<sub>f</sub> < 0: forming it from its elements is <b>spontaneous</b> at this temperature.' : 'ΔG<sub>f</sub> > 0: forming it from its elements is <b>non-spontaneous</b> at this temperature.';
+    if (hf < 0 && ds > 0) s += ' Both ΔH < 0 and ΔS > 0, so it is spontaneous at all temperatures.';
+    else if (hf < 0 && ds < 0) s += ' Exothermic but entropy falls: spontaneous only below ' + Math.round(hf / (ds / 1000)) + ' K.';
+    else if (hf > 0 && ds > 0) s += ' Spontaneous only above ' + Math.round(hf / (ds / 1000)) + ' K.';
+    else if (hf > 0 && ds < 0) s += ' Endothermic and entropy falls, so it is non-spontaneous at all temperatures.';
+    document.getElementById('gs').innerHTML = s;
+  }
+
+  function wireBox(d) {
+    if (active === 'thermo') { const tk = document.getElementById('tk'); if (tk) { tk.oninput = () => { TK = +tk.value; updateG(d); }; updateG(d); } }
+    if (active === 'dipole') { const bd = document.getElementById('bd'); bd.onchange = () => { bondDipoles = bd.checked; update(); }; }
+    if (active === 'ir') {
+      document.querySelectorAll('[data-p]').forEach(el => el.onclick = () => { selPeak = (selPeak === +el.dataset.p) ? null : +el.dataset.p; update(); if (selPeak != null) vibrate(d, d.ir.peaks[selPeak]); });
+    }
+  }
+  function vibrate(d, peak) {
+    const X = d.coords, A = 0.16;
+    // phase of each bond: symmetric = all together; asymmetric = bonds on the same atom move against each other
+    const items = [];
+    (peak.groups || peak.bonds.map(b => [b])).forEach(g => {
+      const n = g.length;
+      g.forEach((bd, k) => {
+        let s = 1;
+        if (peak.mode === 'asymmetric' && n > 1) s = (k === 0) ? 1 : -1 / (n - 1);
+        items.push([bd[0], bd[1], s]);
+      });
+    });
+    const frames = [];
+    for (let k = 0; k < 24; k++) {
+      const ph = Math.sin(2 * Math.PI * k / 24), Y = X.map(r => r.slice());
+      items.forEach(([i, j, s]) => {
+        const u = [X[j][0] - X[i][0], X[j][1] - X[i][1], X[j][2] - X[i][2]], L = Math.hypot(...u); u[0] /= L; u[1] /= L; u[2] /= L;
+        const mi = MASS[d.elements[i]], mj = MASS[d.elements[j]], wi = mj / (mi + mj), wj = mi / (mi + mj);
+        for (let c = 0; c < 3; c++) { Y[i][c] -= u[c] * A * ph * s * wi * 1.6; Y[j][c] += u[c] * A * ph * s * wj * 1.6; }
+      });
+      frames.push(Y);
+    }
+    let k = 0; const bonds = d.bonds.map(b => [b.a, b.b, b.order]);
+    clearInterval(vibTimer);
+    vibTimer = setInterval(() => { show(d.elements, bonds, frames[k++ % frames.length]); }, 45);
+  }
+
+  function renderPanel() {
+    const p = document.getElementById('panel'); if (!p) return;
+    const s = args.syllabus[active];
+    p.classList.toggle('open', sylOpen);
+    document.getElementById('sylbtn').textContent = sylOpen ? '✕ Close syllabus panel' : '📘 Connect to the Syllabus';
+    if (!sylOpen) return;
+    p.innerHTML = '<div class="title"><span>Connect to the Syllabus: ' + s.title + '</span></div><div class="pb">' +
+      '<div class="tagline"><b>' + s.module + '</b><br><i>' + s.question + '</i></div>' + s.paras.map(t => '<p>' + t + '</p>').join('') + '</div>';
+  }
+
+
+  // ---------- fit the component to the browser window ----------
+  function fitHeight() {
+    let h = (args && args.height) || 700;
+    try {
+      const top = window.frameElement.getBoundingClientRect().top + (window.parent.scrollY || 0);
+      h = Math.max(520, Math.round(window.parent.innerHeight - top - 16));
+    } catch (e) {}
+    send('streamlit:setFrameHeight', { height: h });
+    const w = document.getElementById('win'); if (w) w.style.height = h + 'px';
+    resizeViewer();
+  }
+  try { window.parent.addEventListener('resize', fitHeight); } catch (e) {}
+
+  // ---------- 2D SKETCHER (floating window) ----------
+  let sketchSeq = 0;
+  function initSketcher() {
+    const MAX_HEAVY = 4, BOND_LEN = 44, SW = 300, SH = 215;
+    const VAL = { H: 1, C: 4, N: 3, O: 2 };
+    const COL = { C: '#333333', N: '#2040d8', O: '#e00000', H: '#777777' };
+    const SUBN = '₀₁₂₃₄';
+    const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+    const g0 = (args && args.initial) || { atoms: [], bonds: [] };
+    let atoms = (g0.atoms || []).map(a => ({ id: a.id, el: a.el, x: Math.min(SW - 20, a.x), y: Math.min(SH - 20, a.y) }));
+    let bonds = (g0.bonds || []).map(b => ({ a: b.a, b: b.b, o: b.o }));
+    let nextId = atoms.reduce((m, a) => Math.max(m, a.id + 1), 0);
+    let tool = 'C', history = [], drag = null, hover = null, msgTimer = null;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = SW * dpr; cv.height = SH * dpr; cv.style.height = SH + 'px';
+    const W = SW, H = SH;
+
+    function emit(action) { sketchSeq++; send('streamlit:setComponentValue', { value: { atoms: atoms.map(a => ({ id: a.id, el: a.el, x: Math.round(a.x), y: Math.round(a.y) })), bonds: bonds.map(b => ({ a: b.a, b: b.b, o: b.o })), action: action || null, seq: Date.now() * 100 + (sketchSeq % 100) }, dataType: 'json' }); }
+    document.getElementById('btnabout').onclick = () => emit('about');
+    document.getElementById('btnopt').onclick = () => emit('optimise');
+    document.getElementById('btncalc').onclick = () => emit('calculate');
+    const byId = id => atoms.find(a => a.id === id);
+    const used = id => bonds.reduce((s, b) => s + ((b.a === id || b.b === id) ? b.o : 0), 0);
+    const heavyCount = () => atoms.filter(a => a.el !== 'H').length;
+    const bondBetween = (i, j) => bonds.find(b => (b.a === i && b.b === j) || (b.a === j && b.b === i));
+    const implicitH = a => a.el === 'H' ? 0 : Math.max(0, VAL[a.el] - used(a.id));
+    function flash(t) { const m = document.getElementById('skmsg'); m.textContent = t + ' '; document.getElementById('skhint').style.display = 'none'; clearTimeout(msgTimer); msgTimer = setTimeout(() => { m.textContent = ''; document.getElementById('skhint').style.display = ''; }, 3500); }
+    function snapshot() { history.push(JSON.stringify({ atoms, bonds, nextId })); if (history.length > 60) history.shift(); }
+    function formula() {
+      const c = { C: 0, H: 0, N: 0, O: 0 };
+      atoms.forEach(a => { c[a.el]++; c.H += implicitH(a); });
+      const order = c.C ? ['C', 'H', 'N', 'O'] : ['N', 'H', 'O'];
+      return order.filter(e => c[e]).map(e => e + (c[e] > 1 ? '<sub>' + c[e] + '</sub>' : '')).join('');
+    }
+    function updateCount() { document.getElementById('skcount').innerHTML = heavyCount() + '/' + MAX_HEAVY + ' heavy' + (atoms.length ? ' &middot; ' + formula() : ''); }
+    function changed() { updateCount(); draw(); emit(); }
+
+    const atomAt = (x, y) => { for (let i = atoms.length - 1; i >= 0; i--) { const a = atoms[i]; if (Math.hypot(a.x - x, a.y - y) <= 16) return a; } return null; };
+    function distSeg(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1; let t = ((px - ax) * dx + (py - ay) * dy) / l2; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - (ax + t * dx), py - (ay + t * dy)); }
+    function bondAt(x, y) { let best = null, bd = 7; bonds.forEach(b => { const A = byId(b.a), B = byId(b.b); const d = distSeg(x, y, A.x, A.y, B.x, B.y); if (d < bd && !atomAt(x, y)) { bd = d; best = b; } }); return best; }
+    function canAddAtom(el) { if (el !== 'H' && heavyCount() >= MAX_HEAVY) { flash('Maximum of ' + MAX_HEAVY + ' non-hydrogen atoms reached.'); return false; } return true; }
+    function addAtom(el, x, y) { const a = { id: nextId++, el, x: Math.max(16, Math.min(W - 16, x)), y: Math.max(16, Math.min(H - 16, y)) }; atoms.push(a); return a; }
+    const cap = a => VAL[a.el] + ' bond' + (VAL[a.el] > 1 ? 's' : '');
+    function addOrBump(A, B) {
+      const ex = bondBetween(A.id, B.id);
+      if (ex) {
+        const no = ex.o >= 3 ? 1 : ex.o + 1;
+        if (no > ex.o && (used(A.id) + 1 > VAL[A.el] || used(B.id) + 1 > VAL[B.el])) { flash('No free bonding capacity for a higher bond order.'); return false; }
+        ex.o = no; return true;
+      }
+      if (used(A.id) + 1 > VAL[A.el]) { flash(A.el + ' can only make ' + cap(A) + '.'); return false; }
+      if (used(B.id) + 1 > VAL[B.el]) { flash(B.el + ' can only make ' + cap(B) + '.'); return false; }
+      bonds.push({ a: A.id, b: B.id, o: 1 }); return true;
+    }
+    function removeAtom(a) { atoms = atoms.filter(x => x !== a); bonds = bonds.filter(b => b.a !== a.id && b.b !== a.id); }
+    function pos(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * (W / r.width), y: (e.clientY - r.top) * (H / r.height) }; }
+
+    cv.addEventListener('pointerdown', e => {
+      cv.setPointerCapture(e.pointerId);
+      const p = pos(e);
+      drag = { start: p, cur: p, atom: atomAt(p.x, p.y), bond: bondAt(p.x, p.y), moved: false };
+      if (drag.atom && tool === 'move') snapshot();
+    });
+    cv.addEventListener('pointermove', e => {
+      const p = pos(e); hover = atomAt(p.x, p.y);
+      if (drag) {
+        drag.cur = p;
+        if (Math.hypot(p.x - drag.start.x, p.y - drag.start.y) > 6) drag.moved = true;
+        if (tool === 'move' && drag.atom && drag.moved) { drag.atom.x = Math.max(14, Math.min(W - 14, p.x)); drag.atom.y = Math.max(14, Math.min(H - 14, p.y)); }
+      }
+      draw();
+    });
+    cv.addEventListener('pointerup', e => {
+      if (!drag) return;
+      const p = pos(e), d = drag; drag = null;
+      const target = atomAt(p.x, p.y);
+      if (tool === 'move') { if (d.moved) changed(); else history.pop(); return; }
+      if (tool === 'erase') {
+        if (d.atom) { snapshot(); removeAtom(d.atom); changed(); } else if (d.bond) { snapshot(); bonds = bonds.filter(b => b !== d.bond); changed(); } else draw();
+        return;
+      }
+      const el = tool;
+      if (d.atom) {
+        if (d.moved) {
+          if (target && target !== d.atom) { snapshot(); if (!addOrBump(d.atom, target)) history.pop(); changed(); }
+          else if (!target) {
+            if (!canAddAtom(el)) { draw(); return; }
+            if (used(d.atom.id) + 1 > VAL[d.atom.el]) { flash(d.atom.el + ' can only make ' + cap(d.atom) + '.'); draw(); return; }
+            snapshot();
+            const ang = Math.atan2(p.y - d.atom.y, p.x - d.atom.x);
+            const n = addAtom(el, d.atom.x + Math.cos(ang) * BOND_LEN, d.atom.y + Math.sin(ang) * BOND_LEN);
+            bonds.push({ a: d.atom.id, b: n.id, o: 1 }); changed();
+          } else draw();
+        } else if (d.atom.el !== el) {
+          if (el !== 'H' && d.atom.el === 'H' && !canAddAtom(el)) { draw(); return; }
+          if (used(d.atom.id) > VAL[el]) { flash(el + ' cannot hold that many bonds - remove a bond first.'); draw(); return; }
+          snapshot(); d.atom.el = el; changed();
+        } else draw();
+      } else if (d.bond && !d.moved) {
+        snapshot();
+        const A = byId(d.bond.a), B = byId(d.bond.b), no = d.bond.o >= 3 ? 1 : d.bond.o + 1;
+        if (no > d.bond.o && (used(A.id) + 1 > VAL[A.el] || used(B.id) + 1 > VAL[B.el])) { flash('No free bonding capacity for a higher bond order.'); history.pop(); draw(); return; }
+        d.bond.o = no; changed();
+      } else if (!d.moved && !d.atom && !d.bond) {
+        if (!canAddAtom(el)) { draw(); return; }
+        snapshot(); addAtom(el, p.x, p.y); changed();
+      } else draw();
+    });
+    cv.addEventListener('pointerleave', () => { hover = null; draw(); });
+
+    function setTool(t) { tool = t; document.querySelectorAll('button.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t)); cv.style.cursor = t === 'erase' ? 'not-allowed' : t === 'move' ? 'grab' : 'crosshair'; }
+    document.querySelectorAll('button.tool[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+    function undo() { const q = history.pop(); if (!q) return; const o = JSON.parse(q); atoms = o.atoms; bonds = o.bonds; nextId = o.nextId; changed(); }
+    document.getElementById('skundo').addEventListener('click', undo);
+    document.getElementById('skclear').addEventListener('click', () => { if (!atoms.length) return; snapshot(); atoms = []; bonds = []; changed(); });
+    window.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      if (e.metaKey || e.ctrlKey || k.length !== 1) return;
+      if ('cnoh'.includes(k)) setTool(k.toUpperCase()); else if (k === 'e') setTool('erase'); else if (k === 'm') setTool('move'); else if (k === 'z') undo();
+    });
+
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#e8e8e8';
+      for (let x = 15; x < W; x += 22) for (let y = 15; y < H; y += 22) ctx.fillRect(x, y, 2, 2);
+      bonds.forEach(b => {
+        const A = byId(b.a), B = byId(b.b); if (!A || !B) return;
+        const dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+        const sa = A.el === 'H' ? 11 : 15, sb = B.el === 'H' ? 11 : 15;
+        const x1 = A.x + ux * sa, y1 = A.y + uy * sa, x2 = B.x - ux * sb, y2 = B.y - uy * sb;
+        const gap = 4.5, offs = b.o === 1 ? [0] : b.o === 2 ? [-gap, gap] : [-gap * 1.6, 0, gap * 1.6];
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        offs.forEach(o => { ctx.beginPath(); ctx.moveTo(x1 + nx * o, y1 + ny * o); ctx.lineTo(x2 + nx * o, y2 + ny * o); ctx.stroke(); });
+      });
+      if (drag && drag.atom && drag.moved && 'CNOH'.includes(tool)) {
+        const t = atomAt(drag.cur.x, drag.cur.y);
+        ctx.setLineDash([5, 4]); ctx.strokeStyle = '#C9A400'; ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.moveTo(drag.atom.x, drag.atom.y);
+        if (t) ctx.lineTo(t.x, t.y); else { const ang = Math.atan2(drag.cur.y - drag.atom.y, drag.cur.x - drag.atom.x); ctx.lineTo(drag.atom.x + Math.cos(ang) * BOND_LEN, drag.atom.y + Math.sin(ang) * BOND_LEN); }
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      atoms.forEach(a => {
+        const isH = a.el === 'H', r = isH ? 11 : 16;
+        ctx.beginPath(); ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = hover === a ? '#FFF1A8' : '#ffffff'; ctx.fill();
+        ctx.lineWidth = hover === a ? 2.5 : 1.5; ctx.strokeStyle = hover === a ? '#C9A400' : '#bbb'; ctx.stroke();
+        ctx.fillStyle = COL[a.el];
+        const h = implicitH(a), base = a.el + (h > 0 ? 'H' : '');
+        const big = (isH ? 15 : (h ? 16 : 18.3)) + 'px', small = '11.3px';
+        ctx.font = 'bold ' + big + ' Tahoma, Verdana, sans-serif';
+        if (h > 1) {
+          const w1 = ctx.measureText(base).width; ctx.textAlign = 'left';
+          ctx.font = 'bold ' + small + ' Tahoma, Verdana, sans-serif'; const w2 = ctx.measureText(String(h)).width;
+          const x0 = a.x - (w1 + w2) / 2;
+          ctx.font = 'bold ' + big + ' Tahoma, Verdana, sans-serif'; ctx.fillText(base, x0, a.y + 1);
+          ctx.font = 'bold ' + small + ' Tahoma, Verdana, sans-serif'; ctx.fillText(String(h), x0 + w1, a.y + 7);
+          ctx.textAlign = 'center';
+        } else ctx.fillText(base, a.x, a.y + 1);
+      });
+      if (!atoms.length) { ctx.fillStyle = '#999'; ctx.font = '14.3px Tahoma, Verdana, sans-serif'; ctx.fillText('Pick an element, then click here', W / 2, H / 2 - 8); ctx.fillText('to place your first atom.', W / 2, H / 2 + 12); }
+    }
+    setTool('C'); updateCount(); draw();
+  }
+
+  function onRender() {
+    if (args.mode === 'builder') { renderBuilder(); return; }
+    if (args.mode === 'data') {
+      if (!built || args.mol_key !== lastKey) { built = false; buildData(); lastKey = args.mol_key; update(); }
+      else { resizeViewer(); }
+    }
+  }
+  window.addEventListener('resize', resizeViewer);
+})();
+</script>
+</body>
+</html>
