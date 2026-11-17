@@ -24,7 +24,7 @@ CSS = f"""
   #MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{ display:none !important; }}
   .stApp {{ background:#a3a199 repeating-linear-gradient(45deg, #a3a199 0 6px, #aaa8a0 6px 12px); }}
   .block-container {{ padding:14px 22px 10px 22px !important; max-width:1500px; }}
-  html, body, [class*="css"] {{ font-family: Tahoma, Verdana, "MS Sans Serif", sans-serif; }}
+  html, body, .stApp, .stApp *:not(code):not(pre) {{ font-family: Tahoma, Verdana, "MS Sans Serif", sans-serif; }}
   .appbar {{ background:linear-gradient(90deg,{UNSW_YELLOW},#ffe566); border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:1px 1px 0 #000;
             padding:6px 12px; display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; color:#000; }}
   .appbar b {{ font-size:21.33px; letter-spacing:.5px; }}
