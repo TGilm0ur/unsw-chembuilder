@@ -52,8 +52,8 @@ mu = sum(q_i r_i) x 4.8032 D per e.A, from the Gasteiger charges and optimised p
 ### IR spectrum
 Harmonic oscillator per bond: wavenumber = (1/2 pi c) sqrt(k / mu), mu = reduced mass (masses from the `MASS` table in the code, not RDKit).
 - Force constants `FORCE_K` (N/m, by element pair and bond order; aromatic 800): **written from memory as typical textbook-range values, not from a cited source and not fitted to spectra.** Unlisted bond orders scale the single-bond value; fallback base 450.
-- Intensity = 0.08 + |q1 - q2| (Gasteiger charge difference as a proxy for bond polarity). **A heuristic I chose, not derived**: real intensities depend on the dipole derivative. The 0.08 floor keeps non-polar bonds visible.
-- Two or more X-H bonds on one heavy atom become a symmetric/asymmetric pair: peaks at the mean minus 45 and plus 55 cm^-1, sharing 45% / 55% of the intensity (fixed numbers I chose). The animation moves the bonds in phase / out of phase.
+- Intensity = 0.08 + |q1 - q2| (Gasteiger charge difference as a proxy for bond polarity). **A heuristic, not derived**: real intensities depend on the dipole derivative. The 0.08 floor keeps non-polar bonds visible.
+- Two or more X-H bonds on one heavy atom become a symmetric/asymmetric pair: peaks at the mean minus 45 and plus 55 cm^-1, sharing 45% / 55% of the intensity (fixed, hand-picked numbers). The animation moves the bonds in phase / out of phase.
 - Peaks within about 4 cm^-1 with the same label are merged. Line shape is Lorentzian (width 70 cm^-1 for O-H, 35 for N-H, 14 otherwise); transmittance = 100 exp(-1.6 A) from 4000 to 400 cm^-1 (appearance constants).
 - Stretches only: no bends, twists or coupling. Known errors: CO2 asymmetric stretch ~1723 cm^-1 (real ~2349), ethanol C-C stretch too high.
 - Homonuclear diatomics return no peaks and `inactive: True` ("IR inactive").
