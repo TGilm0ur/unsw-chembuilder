@@ -154,16 +154,23 @@
     const fr = args.frames;
     const isNew = args.mol_key !== lastKey;
     if (isNew || args.play_id !== lastPlay) {
-      clearInterval(animTimer);
+      if (animTimer) cancelAnimationFrame(animTimer);
       if (isNew) { show(args.elements, args.bonds, fr[fr.length - 1], { fit: true }); }
       lastKey = args.mol_key;
       if (args.play_id !== lastPlay && fr.length > 1 && args.optimised && args.play_id) {
         lastPlay = args.play_id;
-        let i = 0;
-        animTimer = setInterval(() => {
-          show(args.elements, args.bonds, fr[i]);
-          if (++i >= fr.length) clearInterval(animTimer);
-        }, 55);
+        // Blend smoothly between the real minimisation frames (no extra server work).
+        const DUR = 4500, t0 = performance.now();
+        let lastDraw = 0;
+        const tick = now => {
+          const p = Math.max(0, Math.min(1, (now - t0) / DUR)), pos = p * (fr.length - 1), k = Math.min(fr.length - 2, Math.floor(pos)), f = pos - k;
+          if (now - lastDraw > 24 || p >= 1) {  // cap at ~40 fps
+            lastDraw = now;
+            show(args.elements, args.bonds, fr[k].map((a, j) => a.map((c, m) => c + (fr[k + 1][j][m] - c) * f)));
+          }
+          animTimer = p < 1 ? requestAnimationFrame(tick) : null;
+        };
+        animTimer = requestAnimationFrame(tick);
       } else {
         lastPlay = args.play_id;
         show(args.elements, args.bonds, fr[args.optimised ? fr.length - 1 : 0]);
