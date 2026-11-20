@@ -39,6 +39,7 @@ CSS = f"""
   .note {{ background:#fff3b0; border:2px solid #a58b00; padding:5px 10px; margin:6px 0; font-size:14.33px; color:#000; }}
   .err  {{ background:#ffd9d9; border:2px solid #a00000; padding:5px 10px; margin:6px 0; font-size:14.33px; color:#000; }}
   iframe {{ border:none; }}
+  [data-testid="stHeaderActionElements"], .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a {{ display:none !important; }}  /* heading anchor-link icons */
   .intro {{ background:#d4d0c8; border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:2px 2px 0 #000; color:#000; max-width:1150px; margin:0 auto 10px auto; }}
   .intro .it {{ background:linear-gradient(90deg,{UNSW_YELLOW},#ffe566); border-bottom:2px solid #000; padding:4px 10px; font-weight:bold; font-size:16.33px; }}
   .intro .ib {{ padding:12px 20px 16px 20px; font-size:15.33px; line-height:1.55; }}
